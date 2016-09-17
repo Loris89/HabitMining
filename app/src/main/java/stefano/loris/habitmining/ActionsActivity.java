@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,6 +27,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -120,7 +122,10 @@ public class ActionsActivity extends AppCompatActivity {
 
     private void caricaAttivita() {
         // should be a singleton
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
 
         RequestBody formBody = new FormBody.Builder()
                 .add("imei", IMEI)
@@ -146,6 +151,12 @@ public class ActionsActivity extends AppCompatActivity {
             public void onResponse(Call call, final Response response) throws IOException {
                 hideDialog();
                 if (!response.isSuccessful()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(ActionsActivity.this, "Error: " + response + "." + " Try again.", Toast.LENGTH_LONG).show();
+                        }
+                    });
                     // server error
                     throw new IOException("Unexpected code " + response);
                 } else {
@@ -188,7 +199,13 @@ public class ActionsActivity extends AppCompatActivity {
                             });
                         } else {
                             // Error in getting activities. Get the error message
-                            String errorMsg = jObj.getString("error_msg");
+                            final String errorMsg = jObj.getString("error_msg");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(ActionsActivity.this, "Error: " + errorMsg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                                }
+                            });
                             Log.d(TAG, errorMsg);
                         }
                     } catch (JSONException e) {
