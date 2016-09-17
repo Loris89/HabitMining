@@ -62,7 +62,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
         // Session manager
         session = new SessionManager(getApplicationContext());
 
-        //registerPhone.setEnabled(false);
+        registerPhone.setEnabled(false);
         registerPhone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -94,7 +94,6 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
             Log.d(TAG, "Permission to read phone state not granted");
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
         } else {
-            //TODO
             Log.d(TAG, "Permission to read phone state granted");
             findIMEI();
             checkPhone();
@@ -186,7 +185,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                         } else {
                             // Error in login. Get the error message
                             String errorMsg = jObj.getString("error_msg");
-                            //registerPhone.setEnabled(true);
+                            registerPhone.setEnabled(true);
                             Log.d(TAG, errorMsg);
                         }
                     } catch (JSONException e) {
