@@ -115,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
         esci.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                session.setLogin(false);
-                session.setIMEI("");
+                //session.setLogin(false);
+                //session.setIMEI("");
                 finish();
             }
         });
