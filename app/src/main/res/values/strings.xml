@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">HabitMining</string>
     <string name="title_activity_start">StartActivity</string>
+    <string name="annulla">Annulla</string>
+    <string name="attivit">Attività</string>
+    <string name="test">test</string>
+    <string name="register_phone">Register phone</string>
 </resources>
