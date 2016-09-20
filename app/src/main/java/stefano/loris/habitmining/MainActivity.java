@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private Button esci;
 
     private TextView status;
+    private TextView imei;
 
     private ProgressBar progressBar;
 
@@ -60,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
         annullaAttivita = (Button)findViewById(R.id.btn_annulla_attività);
         esci = (Button)findViewById(R.id.btn_esci);
         status = (TextView)findViewById(R.id.status_text_main);
+        imei = (TextView)findViewById(R.id.imei_txt);
 
         progressBar = (ProgressBar)findViewById(R.id.main_progressbar);
         progressBar.setVisibility(View.INVISIBLE);
@@ -67,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
         // Session manager
         session = new SessionManager(getApplicationContext());
         IMEI = session.getIMEI();
+
+        imei.append(IMEI);
 
         // Progress dialog
         pDialog = new ProgressDialog(this);
@@ -115,8 +120,6 @@ public class MainActivity extends AppCompatActivity {
         esci.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //session.setLogin(false);
-                //session.setIMEI("");
                 finish();
             }
         });
@@ -127,9 +130,10 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == 0) {
             if(resultCode == Activity.RESULT_OK){
                 attivitaScelta = data.getStringExtra("result");
+                String attivitaC = attivitaScelta.toUpperCase();
                 Log.d(TAG, "Attività scelta: " + attivitaScelta);
                 //setTime(true);
-                status.setText("Attività " + attivitaScelta + " in corso");
+                status.setText("Attività " + attivitaC + " in corso");
                 progressBar.setVisibility(View.VISIBLE);
                 avviaAttivita.setEnabled(false);
                 terminaAttivita.setEnabled(true);
@@ -199,6 +203,12 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call call, final Response response) throws IOException {
                 hideDialog();
                 if (!response.isSuccessful()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Error: " + response + "." + " Try again.", Toast.LENGTH_LONG).show();
+                        }
+                    });
                     throw new IOException("Unexpected code " + response);
                 } else {
                     try {
@@ -212,12 +222,24 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "Success! Activity added");
                         } else {
                             // Error in login. Get the error message
-                            String errorMsg = jObj.getString("error_msg");
-                            //registerPhone.setEnabled(true);
+                            final String errorMsg = jObj.getString("error_msg");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this, "Error: " + errorMsg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                                }
+                            });
                             Log.d(TAG, errorMsg);
                         }
                     } catch (JSONException e) {
                         // JSON error
+                        final String msg = e.getMessage();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "Error: " + msg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                            }
+                        });
                         Log.d(TAG, e.getMessage());
                     }
                 }
