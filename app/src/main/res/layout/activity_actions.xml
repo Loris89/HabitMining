@@ -12,9 +12,9 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Attività"
+        android:text="@string/attivit"
         android:id="@+id/attivita_title"
-        android:textSize="30dp"
+        android:textSize="30sp"
         android:textColor="@color/black"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
@@ -22,7 +22,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Annulla"
+        android:text="@string/annulla"
         android:id="@+id/annulla_lista_attività"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
