@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,9 +127,6 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
     private void checkPhone() {
         Log.d(TAG, "checkPhone()");
         Log.d(TAG, "IMEI: " + IMEI);
-        // call php script with OkHttp
-        // phone already registered --> go to main activity
-        // phone isn't registered --> remain here, set "register button" clickable, update status message
 
         // should be a singleton
         OkHttpClient client = new OkHttpClient();
@@ -176,7 +174,6 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                             // Launch main activity
                             Intent intent = new Intent(StartActivity.this,
                                     MainActivity.class);
-                            intent.putExtra("IMEI",IMEI);
                             startActivity(intent);
                             finish();
 
@@ -224,6 +221,12 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
             public void onResponse(Call call, final Response response) throws IOException {
                 hideDialog();
                 if (!response.isSuccessful()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(StartActivity.this, "Error: " + response + "." + " Try again.", Toast.LENGTH_LONG).show();
+                        }
+                    });;
                     throw new IOException("Unexpected code " + response);
                 }
                 else {
@@ -249,13 +252,25 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
 
                         } else {
                             // Error in registration. Get the error message
-                            String errorMsg = jObj.getString("error_msg");
+                            final String errorMsg = jObj.getString("error_msg");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(StartActivity.this, "Error: " + errorMsg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                                }
+                            });
                             Log.d(TAG, errorMsg);
                         }
                     } catch (JSONException e) {
                         // JSON error
+                        final String msg = e.getMessage();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(StartActivity.this, "Error: " + msg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                            }
+                        });
                         Log.d(TAG, e.getMessage());
-                        //e.printStackTrace();
                     }
                 }
             }
