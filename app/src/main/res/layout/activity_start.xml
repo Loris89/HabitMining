@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:text="New Text"
         android:id="@+id/start_status_txtv"
-        android:textSize="30dp"
+        android:textSize="30sp"
         android:textColor="@color/black"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
@@ -24,8 +24,8 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Register phone"
-        android:textSize="25dp"
+        android:text="@string/register_phone"
+        android:textSize="25sp"
         android:id="@+id/register_phone_btn"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
