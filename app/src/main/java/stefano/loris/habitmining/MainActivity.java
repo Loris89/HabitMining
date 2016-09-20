@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import okhttp3.Call;
@@ -157,17 +158,25 @@ public class MainActivity extends AppCompatActivity {
     private void setTime(boolean start) {
         // formato datetime MySQL 'YYYY-MM-DD HH:MM:SS'
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         fmt.setCalendar(gregorianCalendar);
         String dateFormatted = fmt.format(gregorianCalendar.getTime());
+        // get AM or PM
+        int am_or_pm = gregorianCalendar.get(Calendar.AM_PM);
+        String am_pm = "";
+        if(am_or_pm == Calendar.AM) {
+            am_pm = "AM";
+        } else {
+            am_pm = "PM";
+        }
 
         if(start) {
             startTime = dateFormatted;
-            Log.d(TAG, "START TIME: " + startTime);
+            Log.d(TAG, "START TIME: " + startTime + " " + am_pm);
         }
         else {
             endTime = dateFormatted;
-            Log.d(TAG, "END TIME: " + endTime);
+            Log.d(TAG, "END TIME: " + endTime  + " " + am_pm);
         }
     }
 
