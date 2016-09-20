@@ -70,4 +70,14 @@
         android:layout_marginRight="5dp"
         android:indeterminate="false" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="IMEI: "
+        android:id="@+id/imei_txt"
+        android:textSize="25dp"
+        android:textColor="@color/black"
+        android:layout_above="@+id/btn_esci"
+        android:layout_alignStart="@+id/btn_esci" />
+
 </RelativeLayout>
