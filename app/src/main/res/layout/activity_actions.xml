@@ -3,36 +3,82 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:focusableInTouchMode="true"
+    android:background="@color/white"
     tools:context=".ActionsActivity">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/attivit"
+        android:background="@color/white"
+        android:text="@string/start_activity_title"
         android:id="@+id/attivita_title"
         android:textSize="30sp"
         android:textColor="@color/black"
+        android:shadowColor="#00ccff"
+        android:shadowRadius="15"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:textAlignment="center"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/annulla"
-        android:id="@+id/annulla_lista_attività"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentStart="true" />
 
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lista_attività"
         android:layout_centerHorizontal="true"
-        android:layout_above="@+id/annulla_lista_attività"
-        android:layout_below="@+id/attivita_title" />
+        android:listSelector="@drawable/list_color_selector"
+        android:divider="@color/black"
+        android:dividerHeight="1dp"
+        android:background="@drawable/listview_background"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_above="@+id/cancel_layout"
+        android:layout_below="@+id/add_action" />
+
+    <AutoCompleteTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:background="@drawable/edit_text_style"
+        android:textSize="20sp"
+        android:padding="5dp"
+        android:textColor="@color/black"
+        android:textAlignment="center"
+        android:hint="@string/scrivi_attivita_hint"
+        android:id="@+id/aggiungi_attività_txtv"
+        android:layout_below="@+id/attivita_title"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="5dp"/>
+
+    <LinearLayout
+        android:id="@+id/cancel_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="@color/white"
+        android:padding="5dp"
+        android:layout_alignParentBottom="true">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/annulla"
+            android:id="@+id/annulla_lista_attività"
+            android:background="@drawable/button_selector"
+            style="@style/SmallButtonStyle" />
+    </LinearLayout>
+
+    <Button
+        android:text="@string/crea"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_selector"
+        style="@style/SmallButtonStyle"
+        android:id="@+id/add_action"
+        android:layout_marginBottom="5dp"
+        android:layout_below="@+id/aggiungi_attività_txtv"
+        android:layout_alignStart="@+id/aggiungi_attività_txtv"
+        android:layout_alignEnd="@+id/aggiungi_attività_txtv" />
 
 </RelativeLayout>

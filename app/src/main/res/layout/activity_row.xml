@@ -5,16 +5,29 @@
     android:layout_height="match_parent"
     android:descendantFocusability="blocksDescendants">
 
+    <Button
+        android:text="Remove"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/remove_action"
+        android:background="@drawable/button_selector"
+        style="@style/SmallButtonStyle"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New Text"
-        android:textColor="@color/black"
+        android:textColor="@drawable/list_item_text_selector"
+        android:typeface="sans"
         android:id="@+id/action_name"
         android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
-        android:textSize="35sp"
-        android:layout_alignParentTop="true"
+        android:textSize="30sp"
+        android:layout_alignBottom="@+id/remove_action"
         android:layout_alignParentStart="true" />
 
     <TextView
@@ -22,10 +35,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/test"
-        android:layout_alignTop="@+id/action_name"
-        android:layout_alignParentEnd="true"
         android:layout_marginRight="5dp"
         android:textSize="25sp"
-        android:layout_alignBottom="@+id/action_name" />
+        android:layout_alignTop="@+id/action_name"
+        android:layout_toStartOf="@+id/remove_action" />
 
 </RelativeLayout>
