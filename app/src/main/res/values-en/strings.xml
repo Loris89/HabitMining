@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">HabitMining</string>
+    <string name="app_name">Ground Truth Maker</string>
     <string name="title_activity_start">StartActivity</string>
     <string name="annulla">Cancel</string>
     <string name="start_activity_title">Your Activities</string>
@@ -11,4 +12,15 @@
     <string name="aggiungi">Add</string>
     <string name="avvia_attivita">Start an Activity</string>
     <string name="main_vuota">No started activity</string>
+    <string name="refresh_btn">Refresh</string>
+    <string name="imei">IMEI:</string>
+    <string name="crea">Create</string>
+    <!-- NOTIFICHE -->
+    <string name="notification_status_on">Notifications on</string>
+    <string name="notification_status_off">Notifications off</string>
+    <!-- SWITCH -->
+    <string name="alone">Alone</string>
+    <string name="not_alone">Not alone</string>
+    <string name="alone_dialog_msg">Confirm you are alone</string>
+    <string name="not_alone_dialog_msg">Confirm you are not alone</string>
 </resources>

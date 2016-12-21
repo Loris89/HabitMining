@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteConstraintException;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -65,6 +69,7 @@ public class ActionsActivity extends AppCompatActivity {
     private ListView listaAttivita;
     private Button annulla;
     private Button addActivity;
+    private Button refresh;
     private ProgressDialog pDialog;
     private AutoCompleteTextView autoCompleteTextView;
 
@@ -88,6 +93,7 @@ public class ActionsActivity extends AppCompatActivity {
         listaAttivita = (ListView)findViewById(R.id.lista_attività);
         annulla = (Button)findViewById(R.id.annulla_lista_attività);
         addActivity = (Button)findViewById(R.id.add_action);
+        refresh = (Button)findViewById(R.id.refresh);
         autoCompleteTextView = (AutoCompleteTextView)findViewById(R.id.aggiungi_attività_txtv);
 
         session = new SessionManager(getApplicationContext());
@@ -98,12 +104,13 @@ public class ActionsActivity extends AppCompatActivity {
 
         // OTTIENI ATTIVITA'
         localDatabase = new DBHelper(ActionsActivity.this);
-        attivitaRemote = localDatabase.getActivities();
+        /*attivitaRemote = localDatabase.getActivities();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_dropdown_item_1line, attivitaRemote
         );
-        autoCompleteTextView.setAdapter(adapter);
+        autoCompleteTextView.setAdapter(adapter);*/
+        loadActivitiesIntoArray(true);
         autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapter, View view, int pos,long id) {
@@ -159,9 +166,26 @@ public class ActionsActivity extends AppCompatActivity {
             }
         });
 
-        listaAttivita.setAdapter(attivitaAdapter);
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                caricaAttivita();
+                loadActivitiesIntoDB();
+            }
+        });
 
-        Utils.setListViewHeightBasedOnItems(listaAttivita);
+        listaAttivita.setAdapter(attivitaAdapter);
+    }
+
+    private void loadActivitiesIntoArray(boolean start) {
+        attivitaRemote = localDatabase.getActivities();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line, attivitaRemote
+        );
+        autoCompleteTextView.setAdapter(adapter);
+        if(!start)
+            adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -363,33 +387,40 @@ public class ActionsActivity extends AppCompatActivity {
                             JSONArray activities = jObj.getJSONArray("activities");
                             Log.d(TAG, "Activities: " + activities.toString());
                             attivitaA.clear();
-                            for(int i = 0; i < activities.length(); i++) {
-                                JSONObject actObj = activities.getJSONObject(i);
-                                String name = actObj.getString("attivita");
-                                double probabilita = actObj.getDouble("probabilita");
-                                double prob100 = probabilita*100;
-                                String val = decimalFormat.format(prob100);
-                                String valFixed = val.replace(",",".");
-                                double probFinal = Double.parseDouble(valFixed);
-                                Attivita attivita = new Attivita(name, probFinal);
-                                attivitaA.add(attivita);
-                            }
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Log.d(TAG, "Aggiornamento lista");
-                                    attivitaAdapter.notifyDataSetChanged();
-                                    attivitaAdapter.sort(new Comparator<Attivita>() {
-                                        @Override
-                                        public int compare(Attivita lhs, Attivita rhs) {
-                                            Double p1 = new Double(lhs.getProbabilita());
-                                            Double p2 = new Double(rhs.getProbabilita());
-                                            return p2.compareTo(p1);
-                                        }
-                                    });
-                                    Utils.setListViewHeightBasedOnItems(listaAttivita);
+                            if(activities.length()==0) {
+                                // carica attività di default
+                                Log.d(TAG, "Non ci sono attività per te");
+                                caricaAttivitaDefault();
+                            } else {
+                                for(int i = 0; i < activities.length(); i++) {
+                                    JSONObject actObj = activities.getJSONObject(i);
+                                    String name = actObj.getString("attivita");
+                                    double probabilita = actObj.getDouble("probabilita");
+                                    double prob100 = probabilita*100;
+                                    String val = decimalFormat.format(prob100);
+                                    String valFixed = val.replace(",",".");
+                                    double probFinal = Double.parseDouble(valFixed);
+                                    Attivita attivita = new Attivita(name, probFinal);
+                                    attivitaA.add(attivita);
                                 }
-                            });
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Log.d(TAG, "Aggiornamento lista");
+                                        attivitaAdapter.notifyDataSetChanged();
+                                        attivitaAdapter.sort(new Comparator<Attivita>() {
+                                            @Override
+                                            public int compare(Attivita lhs, Attivita rhs) {
+                                                Double p1 = new Double(lhs.getProbabilita());
+                                                Double p2 = new Double(rhs.getProbabilita());
+                                                return p2.compareTo(p1);
+                                            }
+                                        });
+                                    }
+                                });
+
+                                loadActivitiesIntoDB();
+                            }
                         } else {
                             // Error in getting activities. Get the error message
                             final String errorMsg = jObj.getString("error_msg");
@@ -409,15 +440,205 @@ public class ActionsActivity extends AppCompatActivity {
         });
     }
 
+    private void caricaAttivitaDefault() {
+        Log.d(TAG, IMEI + " " + getTime());
+        // should be a singleton
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        RequestBody formBody = new FormBody.Builder()
+                .add("imei", IMEI)
+                .build();
+        Log.d(TAG, "formBody: " + formBody.contentType());
+        Request request = new Request.Builder()
+                .url(AppConfig.URL_LOAD_DEFAULT_ACTIVITIES)
+                .post(formBody)
+                .build();
+
+        showDialog("Getting default activities...");
+
+        // Get a handler that can be used to post to the main thread
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                hideDialog();
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, final Response response) throws IOException {
+                hideDialog();
+                if (!response.isSuccessful()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(ActionsActivity.this, "Error: " + response + "." + " Try again.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    // server error
+                    throw new IOException("Unexpected code " + response);
+                } else {
+                    try {
+                        String body = response.body().string();
+                        Log.d(TAG, "BODY: " + body);
+                        JSONObject jObj = new JSONObject(body);
+                        Log.d(TAG, "JSON: " + jObj.toString());
+                        boolean error = jObj.getBoolean("error");
+
+                        // Check for error node in json
+                        if (!error) {
+                            JSONArray activities = jObj.getJSONArray("activities");
+                            Log.d(TAG, "Activities: " + activities.toString());
+                            attivitaA.clear();
+                            // get activities
+                            for (int i = 0; i < activities.length(); i++) {
+                                String name = activities.getString(i);
+                                Attivita attivita = new Attivita(name, 0);
+                                attivitaA.add(attivita);
+                            }
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.d(TAG, "Aggiornamento lista");
+                                    attivitaAdapter.notifyDataSetChanged();
+                                    attivitaAdapter.sort(new Comparator<Attivita>() {
+                                        @Override
+                                        public int compare(Attivita lhs, Attivita rhs) {
+                                            Double p1 = new Double(lhs.getProbabilita());
+                                            Double p2 = new Double(rhs.getProbabilita());
+                                            return p2.compareTo(p1);
+                                        }
+                                    });
+                                }
+                            });
+
+                            loadActivitiesIntoDB();
+
+                        } else {
+                            // Error in getting activities. Get the error message
+                            final String errorMsg = jObj.getString("error_msg");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(ActionsActivity.this, "Error: " + errorMsg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+                    } catch (JSONException e) {
+                        // JSON error
+                        Log.e(TAG, "JSON ERROR: " + e.getMessage());
+                    }
+                }
+            }
+        });
+    }
+
+    private void loadActivitiesIntoDB() {
+        // should be a singleton
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build();
+
+        RequestBody formBody = new FormBody.Builder()
+                .build();
+        Log.d(TAG, "formBody: " + formBody.contentType());
+        Request request = new Request.Builder()
+                .url(AppConfig.URL_LOAD_ACTIVITIES)
+                .post(formBody)
+                .build();
+
+        //showDialog("Loading activities...");
+
+        // Get a handler that can be used to post to the main thread
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                //hideDialog();
+                e.printStackTrace();
+
+                // I TIMEOUT VENGONO CHIAMATI QUI
+            }
+
+            @Override
+            public void onResponse(Call call, final Response response) throws IOException {
+                //hideDialog();
+                if (!response.isSuccessful()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(ActionsActivity.this, "Error: " + response + "." + " Try again.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    throw new IOException("Unexpected code " + response);
+                }
+                else {
+                    try {
+                        String body = response.body().string();
+                        Log.d(TAG, body);
+                        JSONObject jObj = new JSONObject(body);
+                        boolean error = jObj.getBoolean("error");
+
+                        // Check for error node in json
+                        if (!error) {
+
+                            // get activities
+                            JSONArray activities = jObj.getJSONArray("activities");
+
+                            // remove all the activities from local database
+                            localDatabase.reset();
+                            for(int i = 0; i < activities.length(); i++) {
+                                // store new activities into the remote database
+                                localDatabase.storeActivity(activities.getString(i));
+                            }
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    loadActivitiesIntoArray(false);
+                                }
+                            });
+
+                            Log.d(TAG, "Activities has been loaded");
+
+                        } else {
+                            // Error in getting activities
+                            final String errorMsg = jObj.getString("error_msg");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(ActionsActivity.this, "Error: " + errorMsg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            Log.e(TAG, errorMsg);
+                        }
+                    } catch (JSONException e) {
+                        // JSON error
+                        final String msg = e.getMessage();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(ActionsActivity.this, "Error: " + msg + "." + " Try again.", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        Log.e(TAG, e.getMessage());
+                    }
+                }
+            }
+        });
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
+        hideDialog();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        //mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -428,9 +649,11 @@ public class ActionsActivity extends AppCompatActivity {
     private String getTime() {
         // formato datetime MySQL 'YYYY-MM-DD HH:MM:SS'
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         fmt.setCalendar(gregorianCalendar);
+        //fmt.setTimeZone(TimeZone.getTimeZone("UTC"));
         String dateFormatted = fmt.format(gregorianCalendar.getTime());
+        Log.d(TAG, "Tempo preso: " + dateFormatted);
         return dateFormatted;
     }
 
@@ -472,7 +695,16 @@ public class ActionsActivity extends AppCompatActivity {
             removeAction.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    rimuoviAttivita(getItem(position).getNome());
+                    final String name = getItem(position).getNome();
+                    new AlertDialog.Builder(ActionsActivity.this)
+                            .setTitle("Remove activity")
+                            .setMessage("Do you really want to remove the activity " + name + " ?")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    rimuoviAttivita(name);
+                                    Toast.makeText(ActionsActivity.this, name + " removed", Toast.LENGTH_SHORT).show();
+                                }})
+                            .setNegativeButton(android.R.string.no, null).show();
                 }
             });
 
@@ -494,10 +726,10 @@ public class ActionsActivity extends AppCompatActivity {
             @Override
             public void run() {
                 pDialog.setMessage(message);
+                if (!pDialog.isShowing())
+                    pDialog.show();
             }
         });
-        if (!pDialog.isShowing())
-            pDialog.show();
     }
 
     private void hideDialog() {

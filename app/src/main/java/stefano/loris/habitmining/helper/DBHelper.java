@@ -82,18 +82,18 @@ public class DBHelper extends SQLiteOpenHelper {
 
         // Inserting Row
         long id = db.insert(ACTIVITIES_TABLE_NAME, null, values);
-        db.close(); // Closing database connection
+        //db.close();
 
         Log.d(TAG, "New activity inserted into sqlite: " + id);
     }
 
     /**
-     * Resets the activities
+     * Remove activities
      */
     public void reset() {
         SQLiteDatabase db = this.getWritableDatabase();
-        String query = "DELETE * FROM " + ACTIVITIES_TABLE_NAME;
+        String query = "DELETE FROM " + ACTIVITIES_TABLE_NAME;
         db.execSQL(query);
-        db.close();
+        //db.close();
     }
 }

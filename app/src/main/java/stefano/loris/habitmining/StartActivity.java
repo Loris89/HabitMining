@@ -90,7 +90,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
         });
 
         enter.setEnabled(false);
-        registerPhone.setVisibility(View.INVISIBLE);
+        enter.setVisibility(View.INVISIBLE);
         enter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,14 +119,13 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
         } else {
             Log.d(TAG, "Permission to read phone state granted");
             findIMEI();
-        }
-
-        if(checkConnection()) {
-            checkPhone();
-        } else {
-            registerPhone.setVisibility(View.INVISIBLE);
-            enter.setVisibility(View.INVISIBLE);
-            statusText.setText("Please turn on Internet");
+            if(checkConnection()) {
+                checkPhone();
+            } else {
+                registerPhone.setVisibility(View.INVISIBLE);
+                enter.setVisibility(View.INVISIBLE);
+                statusText.setText("Please turn on Internet");
+            }
         }
     }
 
@@ -169,9 +168,9 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
         Log.d(TAG, "IMEI: " + IMEI);
 
         // should be a singleton
-        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
                 .build();
 
         RequestBody formBody = new FormBody.Builder()
@@ -193,9 +192,9 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                 e.printStackTrace();
 
                 // I TIMEOUT VENGONO CHIAMATI QUI
-                enter.setEnabled(true);
+                /*enter.setEnabled(true);
                 enter.setVisibility(View.VISIBLE);
-                statusText.setText("Try again");
+                statusText.setText("Timeout: Try again");*/
             }
 
             @Override
@@ -224,7 +223,11 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                             Log.d(TAG, "Success! Your IMEI is present in the DB");
 
                             // carica le attività ed entra nella main activity
-                            loadActivities();
+                            //loadActivities();
+
+                            Intent intent = new Intent(StartActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
 
                         } else {
                             // Error in login. Get the error message
@@ -234,6 +237,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                                 public void run() {
                                     statusText.setText(errorMsg);
                                     registerPhone.setEnabled(true);
+                                    registerPhone.setVisibility(View.VISIBLE);
                                 }
                             });
                             Log.e(TAG, errorMsg);
@@ -244,8 +248,9 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                             @Override
                             public void run() {
                                 Toast.makeText(StartActivity.this, "Error: " + msg + "." + " Try again.", Toast.LENGTH_LONG).show();
-                                statusText.setText("Error: " + msg);
+                                statusText.setText(msg);
                                 registerPhone.setEnabled(true);
+                                registerPhone.setVisibility(View.VISIBLE);
                             }
                         });
                         Log.e(TAG, e.getMessage());
@@ -260,7 +265,10 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
      */
     private void registerPhone() {
         // should be a singleton
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build();
 
         RequestBody formBody = new FormBody.Builder()
                 .add("imei", IMEI)
@@ -281,6 +289,9 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                 e.printStackTrace();
 
                 // I TIMEOUT VENGONO CHIAMATI QUI
+                /*statusText.setText("Timeout: Try again");
+                registerPhone.setEnabled(true);
+                registerPhone.setVisibility(View.VISIBLE);*/
             }
 
             @Override
@@ -310,7 +321,11 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                             session.setIMEI(IMEI);
 
                             // carica le attività ed entra nella main activity
-                            loadActivities();
+                            // loadActivities();
+
+                            Intent intent = new Intent(StartActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
 
                             Log.d(TAG, "Success! Your phone has been registered");
 
@@ -323,6 +338,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                                     Toast.makeText(StartActivity.this, "Error: " + errorMsg + "." + " Try again.", Toast.LENGTH_LONG).show();
                                     statusText.setText("Error: " + errorMsg);
                                     registerPhone.setEnabled(true);
+                                    registerPhone.setVisibility(View.VISIBLE);
                                 }
                             });
                             Log.e(TAG, errorMsg);
@@ -336,6 +352,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                                 Toast.makeText(StartActivity.this, "Error: " + msg + "." + " Try again.", Toast.LENGTH_LONG).show();
                                 statusText.setText("Error: " + msg);
                                 registerPhone.setEnabled(true);
+                                registerPhone.setVisibility(View.VISIBLE);
                             }
                         });
                         Log.e(TAG, e.getMessage());
@@ -347,7 +364,10 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
 
     private void loadActivities() {
         // should be a singleton
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build();
 
         RequestBody formBody = new FormBody.Builder()
                 .build();
@@ -378,7 +398,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                         public void run() {
                             Toast.makeText(StartActivity.this, "Error: " + response + "." + " Try again.", Toast.LENGTH_LONG).show();
                         }
-                    });;
+                    });
                     throw new IOException("Unexpected code " + response);
                 }
                 else {
@@ -401,8 +421,6 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                             Intent intent = new Intent(StartActivity.this, MainActivity.class);
                             startActivity(intent);
                             finish();
-
-                            Log.d(TAG, "Success! Your phone has been registered");
 
                         } else {
                             // Error in registration. Get the error message
@@ -438,6 +456,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
     @Override
     protected void onPause() {
         super.onPause();
+        hideDialog();
     }
 
     @Override
@@ -479,7 +498,6 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
 
         // serve per far partire il controllo iniziale sull'imei
         if(connected == true && start) {
-            registerPhone.setVisibility(View.VISIBLE);
             checkPhone();
         }
 

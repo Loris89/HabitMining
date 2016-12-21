@@ -22,19 +22,6 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/lista_attivita_txt" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/avvia_attivita"
-        android:background="@drawable/button_selector"
-        style="@style/MainButtonStyle"
-        android:id="@+id/btn_avvia_attività"
-        android:layout_marginRight="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginBottom="5dp"
-        android:layout_above="@+id/imei_txt"
-        android:layout_centerHorizontal="true" />
-
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -43,14 +30,17 @@
         android:background="@drawable/listview_background"
         android:listSelector="@drawable/list_color_selector"
         android:id="@+id/lista_attivita"
-        android:layout_margin="5dp"
-        android:layout_below="@+id/lista_attivita_txt"
-        android:layout_above="@+id/btn_avvia_attività" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_above="@+id/btn_avvia_attività"
+        android:layout_below="@+id/lista_attivita_txt" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="IMEI: "
+        android:text="@string/imei"
         android:id="@+id/imei_txt"
         android:textSize="25dp"
         android:textColor="@color/black"
@@ -61,7 +51,54 @@
         android:background="@color/white"
         android:textAlignment="center"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/disable_sound"
+        android:layout_above="@id/imei_txt"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="5dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/avvia_attivita"
+        android:background="@drawable/button_selector"
+        style="@style/MainButtonStyle"
+        android:id="@+id/btn_avvia_attività"
+        android:layout_above="@+id/disable_sound"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text=""
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/alone_switch_status"
+        android:textSize="20dp"
+        android:textColor="@color/black"
+        android:layout_alignBaseline="@+id/alone_switch"
+        android:layout_alignBottom="@+id/alone_switch"
+        android:layout_toLeftOf="@+id/alone_switch"
+        android:layout_toStartOf="@+id/alone_switch" />
+
+    <CheckBox
+        android:text=""
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/alone_switch"
+        android:layout_above="@id/imei_txt"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="5dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:id="@+id/nessuna_attivita"
@@ -76,5 +113,17 @@
         android:shadowDx="1"
         android:shadowDy="1"
         android:text="@string/main_vuota"/>
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/notification_status"
+        android:textColor="@color/black"
+        android:textSize="20dp"
+        android:layout_alignBaseline="@+id/disable_sound"
+        android:layout_alignBottom="@+id/disable_sound"
+        android:layout_toRightOf="@+id/disable_sound"
+        android:layout_toEndOf="@+id/disable_sound" />
 
 </RelativeLayout>

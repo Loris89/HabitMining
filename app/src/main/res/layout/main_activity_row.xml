@@ -3,19 +3,6 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:text="X"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/cancel_button"
-        android:textSize="20sp"
-        android:background="@drawable/button_selector"
-        style="@style/SmallButtonStyle"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true" />
-
     <TextView
         android:text="Attivita"
         android:layout_width="wrap_content"
@@ -23,18 +10,10 @@
         android:id="@+id/nome_attivita"
         android:textSize="25sp"
         android:textColor="@color/black"
-        android:layout_alignBaseline="@+id/cancel_button"
-        android:layout_alignBottom="@+id/stop_button"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="5dp" />
-
-    <ProgressBar
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/stop_button"
-        android:layout_alignStart="@+id/nome_attivita"
-        android:id="@+id/attivita_progressbar" />
+        android:layout_marginStart="5dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp" />
 
     <Button
         android:text="Stop"
@@ -42,11 +21,38 @@
         android:layout_height="wrap_content"
         android:id="@+id/stop_button"
         android:textSize="20sp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
         android:background="@drawable/button_selector"
         style="@style/SmallButtonStyle"
-        android:layout_alignParentTop="true"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="2dp"
+        android:layout_below="@+id/nome_attivita"
+        android:layout_toLeftOf="@+id/cancel_button"
         android:layout_toStartOf="@+id/cancel_button" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/attivita_progressbar"
+        android:layout_below="@+id/nome_attivita"
+        android:layout_alignLeft="@+id/nome_attivita"
+        android:layout_alignStart="@+id/nome_attivita"
+        android:layout_marginLeft="7dp"
+        android:layout_marginStart="7dp" />
+
+    <Button
+        android:text="canc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/cancel_button"
+        android:textSize="20sp"
+        android:background="@drawable/button_selector"
+        style="@style/SmallButtonStyle"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="2dp"
+        android:layout_alignBaseline="@+id/stop_button"
+        android:layout_alignBottom="@+id/stop_button"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>

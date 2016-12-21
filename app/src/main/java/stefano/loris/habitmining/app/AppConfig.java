@@ -15,4 +15,6 @@ public class AppConfig {
     public static String URL_REMOVE_ACTIVITY = "http://habitmining.altervista.org/removeActivity.php";
 
     public static String URL_LOAD_ACTIVITIES = "http://habitmining.altervista.org/loadActivities.php";
+
+    public static String URL_LOAD_DEFAULT_ACTIVITIES = "http://habitmining.altervista.org/getTopActivities.php";
 }

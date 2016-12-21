@@ -1,19 +1,17 @@
 package stefano.loris.habitmining;
 
 import android.app.Activity;
-import android.app.AlarmManager;
+import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,8 +22,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.NumberPicker;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,16 +49,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import stefano.loris.habitmining.app.AppConfig;
-import stefano.loris.habitmining.utils.ConnectivityReceiver;
+import stefano.loris.habitmining.helper.NotificationService;
 import stefano.loris.habitmining.utils.SessionManager;
-import stefano.loris.habitmining.utils.Utils;
-
-import static android.hardware.Sensor.TYPE_ACCELEROMETER;
-import static android.hardware.Sensor.TYPE_GYROSCOPE;
-import static android.hardware.Sensor.TYPE_LINEAR_ACCELERATION;
-import static android.hardware.Sensor.TYPE_MAGNETIC_FIELD;
-import static android.hardware.Sensor.TYPE_ROTATION_VECTOR;
-import static android.hardware.Sensor.TYPE_STEP_COUNTER;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -69,8 +63,16 @@ public class MainActivity extends AppCompatActivity {
     // DATI VISTA
 
     private Button avviaAttivita;
+
     private TextView imei;
     private TextView nessuna_attività;
+    private TextView notificationStatus;
+    private TextView alone_status;
+
+    private CheckBox silenzia;
+
+    private CheckBox alone_switch;
+
     private ProgressDialog pDialog;
 
     // DATI TELEFONO
@@ -84,8 +86,12 @@ public class MainActivity extends AppCompatActivity {
     private AttivitaAdapter adapter;
     private ArrayList<Attivita> listaAttivita;
 
-    // Create the Handler object (on the main thread by default)
+    private boolean notificationsEnabled;
+    private boolean alone;
+
     public static Handler my_handler = new Handler();
+
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +102,20 @@ public class MainActivity extends AppCompatActivity {
         imei = (TextView)findViewById(R.id.imei_txt);
         attivitaListView = (ListView)findViewById(R.id.lista_attivita);
         nessuna_attività = (TextView)findViewById(R.id.nessuna_attivita);
+        notificationStatus = (TextView)findViewById(R.id.notification_status);
+        silenzia = (CheckBox)findViewById(R.id.disable_sound);
+        alone_status = (TextView)findViewById(R.id.alone_switch_status);
+        alone_switch = (CheckBox)findViewById(R.id.alone_switch);
+
+        notificationsEnabled = true;
+        String mystring = getResources().getString(R.string.notification_status_on);
+        notificationStatus.setText(mystring);
+
+        // shared preferences per il servizio di notifica
+        sharedPreferences = this.getSharedPreferences("NOTIFY", MODE_PRIVATE);
+        updateNotifySharedPreferences(true); // all'inizio le notifiche sono abilitate
+
+        silenzia.setChecked(true);
 
         // Session manager
         session = new SessionManager(getApplicationContext());
@@ -112,14 +132,9 @@ public class MainActivity extends AppCompatActivity {
         avviaAttivita.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // reset variables
-                if(listaAttivita.size() == 3) {
-                    Toast.makeText(MainActivity.this, "Hai selezionato già 3 attività", Toast.LENGTH_LONG).show();
-                } else {
-                    // chiama activity delle attività e attendi l'attività scelta
-                    Intent intent = new Intent(MainActivity.this, ActionsActivity.class);
-                    startActivityForResult(intent, 0);
-                }
+                // chiama activity delle attività e attendi l'attività scelta
+                Intent intent = new Intent(MainActivity.this, ActionsActivity.class);
+                startActivityForResult(intent, 0);
             }
         });
 
@@ -130,19 +145,140 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        silenzia.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(notificationsEnabled) {
+                    silenzia.setChecked(false);
+                    String mystring = getResources().getString(R.string.notification_status_off);
+                    notificationStatus.setText(mystring);
+                    notificationsEnabled = false;
+                    updateNotifySharedPreferences(false);
+                }
+                else {
+                    silenzia.setChecked(true);
+                    String mystring = getResources().getString(R.string.notification_status_on);
+                    notificationStatus.setText(mystring);
+                    notificationsEnabled = true;
+                    if(!listaAttivita.isEmpty()) {
+                        updateNotifySharedPreferences(true);
+                    }
+                }
+            }
+        });
+
+        alone_switch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(alone_switch.isChecked()) {
+                    String msg = getResources().getString(R.string.alone_dialog_msg);
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(msg)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    alone = true;
+                                    update_alone_switch();
+                                }})
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    alone = false;
+                                    alone_switch.setChecked(false);
+                                    update_alone_switch();
+                                }}).show();
+                }
+                else {
+                    String msg = getResources().getString(R.string.not_alone_dialog_msg);
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(msg)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    alone = false;
+                                    update_alone_switch();
+                                }})
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    alone = true;
+                                    alone_switch.setChecked(true);
+                                    update_alone_switch();
+                                }}).show();
+                }
+            }
+        });
+
         adapter = new AttivitaAdapter(MainActivity.this, R.layout.main_activity_row, listaAttivita);
         attivitaListView.setAdapter(adapter);
+    }
 
-        setListViewHeightBasedOnItems(attivitaListView);
+    private void update_alone_switch() {
+        String mystring;
+        if(alone_switch.isChecked()) {
+            mystring = getResources().getString(R.string.alone);
+        } else {
+            mystring = getResources().getString(R.string.not_alone);
+        }
+        alone_status.setText(mystring);
+    }
 
-        // starts the timer
-        startTimer();
+    private void updateNotifySharedPreferences(boolean notify) {
+        Log.d(TAG, "notifiche " + notify);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("NOTIFY_VAL", notify);
+        editor.commit();
+    }
+
+    private void updateActivitiesSharedPreferences(boolean activities) {
+        Log.d(TAG, "attività " + activities);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("ACTIVITIES_VAL", activities);
+        editor.commit();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        Log.d(TAG, "onSaveInstanceState()");
+
+        if(!listaAttivita.isEmpty()) { // ci sono delle attività in corso
+            int size = listaAttivita.size();
+            savedInstanceState.putInt("DIM", size);
+            for(int i = 0; i < listaAttivita.size(); i++) {
+                Log.d(TAG, "Attività " + i + " salvata");
+                savedInstanceState.putParcelable(String.valueOf(i), listaAttivita.get(i));
+            }
+        }
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Always call the superclass so it can restore the view hierarchy
+        super.onRestoreInstanceState(savedInstanceState);
+
+        Log.d(TAG, "onRestoreInstanceState()");
+
+        // Check whether we're recreating a previously destroyed instance
+        if (savedInstanceState != null) {
+            int size = savedInstanceState.getInt("DIM");
+            for(int i = 0; i < size; i++) {
+                Log.d(TAG, "Attività " + i + " ricreata");
+                Attivita attivita = savedInstanceState.getParcelable(String.valueOf(i));
+                listaAttivita.add(attivita);
+            }
+            // aggiorna la lista
+            adapter.notifyDataSetChanged();
+            // make the status invisible
+            nessuna_attività.setVisibility(View.INVISIBLE);
+            // start the timer again
+            // startTimer();
+            startService(new Intent(this, NotificationService.class));
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == 0) {
             if(resultCode == Activity.RESULT_OK){
+                Log.d(TAG, "Activity started");
                 // take data from called activity
                 String attivitaScelta = data.getStringExtra("result");
                 String startTime = data.getStringExtra("start");
@@ -157,10 +293,12 @@ public class MainActivity extends AppCompatActivity {
                     listaAttivita.add(attivita);
                     adapter.notifyDataSetChanged();
                 }
-                setListViewHeightBasedOnItems(attivitaListView);
                 nessuna_attività.setVisibility(View.INVISIBLE);
-                // restartTimer timer
-                restartTimer();
+                // restart/start timer
+                // startTimer();
+                updateActivitiesSharedPreferences(true);
+                stopService(new Intent(this, NotificationService.class));
+                startService(new Intent(this, NotificationService.class));
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 Log.d(TAG, "Scelta attività annullata");
@@ -171,35 +309,55 @@ public class MainActivity extends AppCompatActivity {
     private String getTime() {
         // formato datetime MySQL 'YYYY-MM-DD HH:MM:SS'
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         fmt.setCalendar(gregorianCalendar);
+        //fmt.setTimeZone(TimeZone.getTimeZone("UTC"));
         String dateFormatted = fmt.format(gregorianCalendar.getTime());
+        Log.d(TAG, "Tempo preso: " + dateFormatted);
         return dateFormatted;
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "onStart()");
+
+        startService(new Intent(this, NotificationService.class));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume()");
+        update_alone_switch();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        hideDialog();
+        Log.d(TAG, "onPause()");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        Log.d(TAG, "onStop()");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "onRestart()");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy()");
+
+        updateActivitiesSharedPreferences(false);
+        updateNotifySharedPreferences(true);
     }
 
     private void showDialog(final String message) {
@@ -257,8 +415,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     // inserisci attività
                     storeActivity(attivita, position);
-                    // riavvio timer utilizzo app
-                    restartTimer();
                 }
             });
 
@@ -269,14 +425,12 @@ public class MainActivity extends AppCompatActivity {
                     // rimuovi attività
                     objects.remove(position);
                     notifyDataSetChanged();
-                    setListViewHeightBasedOnItems(attivitaListView);
 
                     if(listaAttivita.size()==0) {
                         nessuna_attività.setVisibility(View.VISIBLE);
+                        //stopTimer();
+                        updateActivitiesSharedPreferences(false); // non ci sono più attività
                     }
-
-                    // riavvio timer utilizzo app
-                    restartTimer();
                 }
             });
 
@@ -297,6 +451,15 @@ public class MainActivity extends AppCompatActivity {
     private void storeActivity(final Attivita attivita, final int position) {
         Log.d(TAG, "storeActivity()");
 
+        String alones;
+        if(alone) {
+            alones = "alone";
+        } else {
+            alones = "not_alone";
+        }
+
+        Log.d(TAG, "Alone? " + alones + " " + alone);
+
         // should be a singleton
         OkHttpClient client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
@@ -308,6 +471,7 @@ public class MainActivity extends AppCompatActivity {
                     .add("timestamp_start", attivita.getTimestampStart())
                     .add("timestamp_stop", getTime())
                     .add("activity", attivita.getNome())
+                    .add("alone", alones)
                     .build();
 
         Request request = new Request.Builder()
@@ -352,9 +516,11 @@ public class MainActivity extends AppCompatActivity {
                                     // rimuovi attività
                                     listaAttivita.remove(position);
                                     adapter.notifyDataSetChanged();
-                                    setListViewHeightBasedOnItems(attivitaListView);
+                                    //setListViewHeightBasedOnItems(attivitaListView);
                                     if(listaAttivita.size()==0) {
                                         nessuna_attività.setVisibility(View.VISIBLE);
+                                        //stopTimer();
+                                        updateActivitiesSharedPreferences(false); // non ci sono più attività
                                     }
                                 }
                             });
@@ -366,7 +532,7 @@ public class MainActivity extends AppCompatActivity {
                                     Toast.makeText(MainActivity.this, "Error: " + errorMsg + "." + " Try again.", Toast.LENGTH_LONG).show();
                                 }
                             });
-                            Log.d(TAG, errorMsg);
+                            Log.d(TAG, errorMsg + " error = true in result");
                         }
                     } catch (JSONException e) {
                         // JSON error
@@ -377,7 +543,7 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, "Error: " + msg + "." + " Try again.", Toast.LENGTH_LONG).show();
                             }
                         });
-                        Log.d(TAG, e.getMessage());
+                        Log.d(TAG, e.getMessage() + " JSON CATCH");
                     }
                 }
             }
@@ -401,18 +567,24 @@ public class MainActivity extends AppCompatActivity {
             mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
             Log.d("Handlers", "Called on main thread");
 
-            restartTimer();
+            if(!listaAttivita.isEmpty()) {// ci sono delle attività in corso
+                //startTimer();
+            }
         }
     };
 
     public void startTimer() {
-        my_handler.postDelayed(my_runnable, TIMER_TIME);
+        if(notificationsEnabled) {
+            Log.d(TAG, "timer started");
+            my_handler.removeCallbacks(my_runnable);
+            my_handler.postDelayed(my_runnable, TIMER_TIME);
+        }
     }
 
-    public void restartTimer() {
+    /*public void stopTimer() {
+        Log.d(TAG, "timer stopped");
         my_handler.removeCallbacks(my_runnable);
-        my_handler.postDelayed(my_runnable, TIMER_TIME);
-    }
+    }*/
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {

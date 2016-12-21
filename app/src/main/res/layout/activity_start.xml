@@ -1,25 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="stefano.loris.habitmining.StartActivity">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/start_status_txtv"
-        android:textSize="30sp"
-        android:textColor="@color/black"
-        android:shadowColor="#00ccff"
-        android:shadowRadius="15"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:gravity="center"
-        android:layout_above="@+id/register_phone_btn"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="42dp" />
 
     <TextView
         android:text="Ground Truth Maker"
@@ -36,26 +21,50 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/register_phone"
-        android:textSize="25sp"
-        android:background="@drawable/button_selector"
-        style="@style/MainButtonStyle"
-        android:id="@+id/register_phone_btn"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="80dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:text="@string/enter"
         android:textSize="25sp"
         android:background="@drawable/button_selector"
         style="@style/MainButtonStyle"
         android:id="@+id/enter_button"
+        android:layout_marginBottom="26dp"
         android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/register_phone"
+        android:textSize="25sp"
+        android:background="@drawable/button_selector"
+        style="@style/MainButtonStyle"
+        android:id="@+id/register_phone_btn"
+        android:layout_alignBaseline="@+id/enter_button"
+        android:layout_alignBottom="@+id/enter_button"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/house_icon"
+        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="80dp" />
+        android:id="@+id/imageView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:id="@+id/start_status_txtv"
+        android:textSize="30sp"
+        android:textColor="@color/black"
+        android:shadowColor="#00ccff"
+        android:shadowRadius="15"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:gravity="center"
+        android:layout_marginBottom="5dp"
+        android:layout_above="@+id/register_phone_btn"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
 
