@@ -6,7 +6,7 @@
     <string name="start_activity_title">Lista Attività</string>
     <string name="main_activity_title">Attività Avviate</string>
     <string name="test">test</string>
-    <string name="register_phone">Registra Telefono</string>
+    <string name="register_phone">Salva IMEI</string>
     <string name="enter">Entra</string>
     <string name="scrivi_attivita_hint">Nome Attività</string>
     <string name="crea">Crea</string>
