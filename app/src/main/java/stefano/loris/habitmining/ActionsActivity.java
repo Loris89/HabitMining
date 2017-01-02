@@ -388,7 +388,6 @@ public class ActionsActivity extends AppCompatActivity {
                             Log.d(TAG, "Activities: " + activities.toString());
                             attivitaA.clear();
                             if(activities.length()==0) {
-                                // carica attività di default
                                 Log.d(TAG, "Non ci sono attività per te");
                                 // caricaAttivitaDefault();
                             } else {
