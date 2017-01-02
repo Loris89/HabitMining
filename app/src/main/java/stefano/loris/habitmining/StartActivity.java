@@ -190,11 +190,6 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
             public void onFailure(Call call, IOException e) {
                 hideDialog();
                 e.printStackTrace();
-
-                // I TIMEOUT VENGONO CHIAMATI QUI
-                /*enter.setEnabled(true);
-                enter.setVisibility(View.VISIBLE);
-                statusText.setText("Timeout: Try again");*/
             }
 
             @Override
@@ -287,11 +282,6 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
             public void onFailure(Call call, IOException e) {
                 hideDialog();
                 e.printStackTrace();
-
-                // I TIMEOUT VENGONO CHIAMATI QUI
-                /*statusText.setText("Timeout: Try again");
-                registerPhone.setEnabled(true);
-                registerPhone.setVisibility(View.VISIBLE);*/
             }
 
             @Override
@@ -315,13 +305,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
 
                         // Check for error node in json
                         if (!error) {
-                            // user successfully logged in
-                            // Create login session
-                            // session.setLogin(true);
                             session.setIMEI(IMEI);
-
-                            // carica le attività ed entra nella main activity
-                            // loadActivities();
 
                             Intent intent = new Intent(StartActivity.this, MainActivity.class);
                             startActivity(intent);
@@ -362,7 +346,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
         });
     }
 
-    private void loadActivities() {
+    /*private void loadActivities() {
         // should be a singleton
         OkHttpClient client = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(60, TimeUnit.SECONDS)
@@ -451,7 +435,7 @@ public class StartActivity extends AppCompatActivity implements ActivityCompat.O
                 }
             }
         });
-    }
+    }*/
 
     @Override
     protected void onPause() {

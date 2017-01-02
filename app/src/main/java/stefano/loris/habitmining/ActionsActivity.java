@@ -390,7 +390,7 @@ public class ActionsActivity extends AppCompatActivity {
                             if(activities.length()==0) {
                                 // carica attività di default
                                 Log.d(TAG, "Non ci sono attività per te");
-                                caricaAttivitaDefault();
+                                // caricaAttivitaDefault();
                             } else {
                                 for(int i = 0; i < activities.length(); i++) {
                                     JSONObject actObj = activities.getJSONObject(i);
